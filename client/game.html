@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
+</head>
+
+<body>
+    <p>开发中。。。</p>
+    <h1 id="load">加载中...</h1>
+    <div id="game">
+        <h1>房间号：<span id="roomid"></span><span id="is_admin" style="display: none">(房主)</span></h1>
+        <h1>昵称：<span id="username"></span></h1>
+    </div>
+    <script>
+        //some tricks
+        function $$$(id) {
+            return document.getElementById(id);
+        }
+        function $$(selector) {
+            return document.querySelector(selector);
+        }
+        //message define
+        const MSG_CTRL_LOGIN = "LOGIN";
+        const MSG_CTRL_START = "START";
+        const MSG_CTRL_CREATE = "CREATE";
+        const MSG_RE_LOGIN_ROOM_INVALID = "LOG_ROOM_INVALID";
+        const MSG_RE_LOGIN_ROOM_FULL = "LOG_ROOM_FULL";
+        const MSG_RE_LOGIN_SUCCESS = "LOG_SUCC";
+
+        const client = new WebSocket(`wss://${location.hostname}:5000`);
+        client.onmessage = handler;
+        client.onerror = e => console.error(e);
+        var roomid, username, isAdmin;
+        let params = new URLSearchParams(location.search);
+        username = params.get("username");
+
+        if (params.get("create") === "CREATE") {
+            //create a room
+            isAdmin = true;
+            $$$("username").innerText = username;
+            client.onopen = e => client.send(`${MSG_CTRL_CREATE} ${username}`);
+        } else {
+            //enter a room
+            isAdmin = false;
+            roomid = params.get("roomid");
+            if (roomid <= 0 || isNaN(roomid)) {
+                finish("请输入正确的房间号！");
+            }
+            $$$("roomid").innerText = roomid = Number(roomid);
+            $$$("username").innerText = username;
+            client.onopen = e => client.send(`${MSG_CTRL_LOGIN} ${roomid} ${username}`);
+        }
+        function finish(msg) {
+            alert(msg);
+            client.close();
+            window.history.back();
+        }
+        function handler(event) {
+
+        }
+        console.log("alive");
+    </script>
+</body>
